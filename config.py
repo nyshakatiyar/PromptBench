@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from dotenv import load_dotenv
 
 
-DEFAULT_MODEL = "gemini-2.5-flash"
-DEFAULT_JUDGE_MODEL = "gemini-2.5-flash"
+DEFAULT_MODEL = "gemini-3.5-flash"
+DEFAULT_JUDGE_MODEL = "gemini-3.5-flash"
 DEFAULT_DATA_DIR = "experiments"
 
 load_dotenv()
