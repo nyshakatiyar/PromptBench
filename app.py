@@ -1,6 +1,6 @@
 
 import streamlit as st
-
+from results_dashboard import display_results
 from prompt_generator import generate_prompts, TECHNIQUES
 
 
@@ -133,3 +133,24 @@ st.write(
     "PromptBench is designed to compare prompting strategies "
     "using consistent inputs and evaluation criteria."
 )
+with st.expander("Dashboard preview (sample data)"):
+    sample_results = [
+        {
+            "technique": "zero_shot",
+            "response": "Machine learning enables systems to learn patterns from data.",
+            "latency_seconds": 1.2,
+            "input_tokens": 12,
+            "output_tokens": 20,
+            "evaluation_score": 7.5,
+        },
+        {
+            "technique": "role_prompting",
+            "response": "Machine learning is when a computer learns patterns from examples.",
+            "latency_seconds": 1.5,
+            "input_tokens": 25,
+            "output_tokens": 24,
+            "evaluation_score": 8.5,
+        },
+    ]
+
+    display_results(sample_results)
