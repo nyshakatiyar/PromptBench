@@ -77,3 +77,21 @@ class FakeModels:
 class FakeClient:
     def __init__(self, outcomes):
         self.models = FakeModels(outcomes)
+
+
+class EchoModels:
+    """Answers every generation call, and every judge call with fixed scores."""
+
+    def __init__(self):
+        self.calls = []
+
+    def generate_content(self, model, contents, config=None):
+        self.calls.append({"model": model, "contents": contents, "config": config})
+        if config is not None and getattr(config, "response_mime_type", None) == "application/json":
+            return judge_reply()
+        return make_response(f"Answer to: {contents[:40]}", 15, 25)
+
+
+class EchoClient:
+    def __init__(self):
+        self.models = EchoModels()
