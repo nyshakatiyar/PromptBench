@@ -1,6 +1,6 @@
 
 import streamlit as st
-
+from results_dashboard import display_results
 from prompt_generator import generate_prompts, TECHNIQUES
 
 
@@ -74,6 +74,7 @@ if generate_button:
             variants = generate_prompts(
                 task,
                 selected_techniques,
+                task_category=task_category,
             )
 
             st.session_state["promptbench_task"] = task
@@ -133,3 +134,25 @@ st.write(
     "PromptBench is designed to compare prompting strategies "
     "using consistent inputs and evaluation criteria."
 )
+with st.expander("Dashboard preview (sample data)"):
+    sample_results = [
+        {
+            "technique": "zero_shot",
+            "prompt": "Explain robotics to a second-year student.",
+            "response": "Robotics combines engineering, programming, and mechanics.",
+            "latency_seconds": 1.2,
+            "input_tokens": 12,
+            "output_tokens": 18,
+            "evaluation_score": 8.0,
+        },
+        {
+            "technique": "few_shot",
+            "prompt": "Explain robotics using examples.",
+            "response": "Robots use sensors and programs to perform tasks.",
+            "latency_seconds": 1.5,
+            "input_tokens": 20,
+            "output_tokens": 15,
+            "evaluation_score": 8.5,
+        },
+    ]
+    display_results(sample_results)

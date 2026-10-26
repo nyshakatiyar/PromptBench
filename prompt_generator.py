@@ -14,9 +14,8 @@ TECHNIQUES = {
 }
 
 
-FEW_SHOT_EXAMPLES = """
-Examples of how to respond to tasks:
-
+FEW_SHOT_EXAMPLES = {
+    "General question answering": """
 Task: Explain photosynthesis to a beginner.
 Response: Photosynthesis is the process plants use to convert
 sunlight, water, and carbon dioxide into sugars and oxygen.
@@ -24,20 +23,58 @@ sunlight, water, and carbon dioxide into sugars and oxygen.
 Task: Explain why exercise is beneficial.
 Response: Exercise supports physical health, improves fitness,
 and can benefit mood and general well-being.
+""",
+    "Text classification": """
+Task: Classify the sentiment of this review: "I love this product."
+Response: Positive
 
-Use the examples as guidance for clear, beginner-friendly
-explanations. Adapt your response to the actual task.
-"""
+Task: Classify the sentiment of this review: "It is terrible."
+Response: Negative
+
+Task: Classify the sentiment of this review: "It is okay."
+Response: Neutral
+""",
+    "Summarization": """
+Task: Summarize: "The city planted trees across five streets.
+The project aims to improve shade and air quality."
+Response: The city planted trees to increase shade and improve air quality.
+
+Task: Summarize: "The school extended library hours so students
+could study after classes and during exam periods."
+Response: The school extended library hours to give students
+more time to study.
+""",
+    "Content generation": """
+Task: Write a short headline about a community garden opening.
+Response: Community Garden Opens to Bring Neighbors Together
+
+Task: Write a friendly reminder to drink enough water.
+Response: Remember to drink water throughout the day to stay hydrated!
+""",
+    "Information extraction": """
+Task: Extract the name and date: "Maya's appointment is on 12 June."
+Response: {"name": "Maya", "date": "12 June"}
+
+Task: Extract the product and price: "The notebook costs $5."
+Response: {"product": "notebook", "price": "$5"}
+""",
+}
+
 
 
 def generate_prompts(
     task: str,
     techniques: Iterable[str] | None = None,
+    task_category: str = "General question answering",
 ) -> dict[str, str]:
     """Return selected prompt variants keyed by technique ID."""
+    
 
     if not isinstance(task, str) or not task.strip():
         raise ValueError("Please enter a task or prompt.")
+    
+    if task_category not in FEW_SHOT_EXAMPLES:
+        raise ValueError(f"Unknown task category: {task_category}")
 
     selected = list(techniques) if techniques is not None else list(TECHNIQUES)
 
@@ -58,10 +95,13 @@ def generate_prompts(
             prompt = task
 
         elif technique == "few_shot":
+            examples = FEW_SHOT_EXAMPLES[task_category].strip()
             prompt = (
-                f"{FEW_SHOT_EXAMPLES}\n\n"
+                f"Here are examples for the task category "
+                f"'{task_category}':\n\n"
+                f"{examples}\n\n"
                 f"Now complete this task:\n{task}"
-            )
+                )
 
         elif technique == "role_prompting":
             prompt = (
