@@ -45,10 +45,38 @@ def prepare_results(results: list[dict]) -> pd.DataFrame:
     return df
 
 
-def display_results(results: list[dict]) -> None:
+RUBRIC_COLUMNS = [
+    "relevance",
+    "completeness",
+    "clarity",
+    "instruction_following",
+]
+
+
+def flatten_results(results: list[dict]) -> list[dict]:
+    """Copy rubric scores and the validation verdict into top-level fields."""
+
+    rows = []
+    for result in results:
+        row = dict(result)
+        judge_scores = row.get("judge_scores") or {}
+        for name in RUBRIC_COLUMNS:
+            if name in judge_scores:
+                row[name] = judge_scores[name]
+        validation = row.get("validation") or {}
+        if "passed" in validation:
+            row["rules_passed"] = validation["passed"]
+        rows.append(row)
+    return rows
+
+
+def display_results(
+    results: list[dict],
+    header: str = "3. Experiment results",
+) -> None:
     """Display experiment results and basic comparisons."""
 
-    st.header("3. Experiment results")
+    st.header(header)
 
     if not results:
         st.info(
@@ -58,7 +86,7 @@ def display_results(results: list[dict]) -> None:
         return
 
     try:
-        df = prepare_results(results)
+        df = prepare_results(flatten_results(results))
     except ValueError as error:
         st.error(str(error))
         return
@@ -73,9 +101,14 @@ def display_results(results: list[dict]) -> None:
         "output_tokens",
         "evaluation_score",
     ]
+    extra_columns = [
+        column
+        for column in ["status", *RUBRIC_COLUMNS, "rules_passed"]
+        if column in df.columns
+    ]
 
     st.dataframe(
-        df[display_columns],
+        df[display_columns + extra_columns],
         use_container_width=True,
         hide_index=True,
     )
@@ -132,3 +165,28 @@ def display_results(results: list[dict]) -> None:
 
         st.pyplot(fig)
         plt.close(fig)
+
+    st.subheader("Details")
+
+    for row in flatten_results(results):
+        label = row["technique"]
+        if row.get("evaluation_score") is not None:
+            label += f" (score {row['evaluation_score']})"
+        if row.get("status", "success") != "success":
+            label += f" ({row['status']})"
+
+        with st.expander(label):
+            if row.get("error"):
+                st.error(row["error"])
+            if row.get("prompt"):
+                st.markdown("**Prompt**")
+                st.code(row["prompt"], language="text")
+            st.markdown("**Response**")
+            st.write(row.get("response") or "_No response_")
+            if row.get("judge_feedback"):
+                st.markdown(f"**Judge feedback:** {row['judge_feedback']}")
+            validation = row.get("validation") or {}
+            for issue in validation.get("issues", []):
+                st.warning(issue)
+            if validation.get("checks"):
+                st.json(validation["checks"], expanded=False)
